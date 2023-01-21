@@ -14,6 +14,7 @@ import com.bobocode.util.ExerciseNotCompletedException;
  * @author Taras Boychuk
  * @author Ivan Virchenko
  */
+// Check for update on laptop
 public class LinkedQueue<T> implements Queue<T> {
 
     private int size;
