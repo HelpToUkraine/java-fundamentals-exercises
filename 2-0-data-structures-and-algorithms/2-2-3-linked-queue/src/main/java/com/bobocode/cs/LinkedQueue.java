@@ -16,13 +16,24 @@ import com.bobocode.util.ExerciseNotCompletedException;
  */
 public class LinkedQueue<T> implements Queue<T> {
 
+    private int size;
+
+    private static class Node<T> {
+        T element;
+        Node<T> next;
+
+        private Node(T element) {
+            this.element = element;
+        }
+    }
+
     /**
      * Adds an element to the end of the queue.
      *
      * @param element the element to add
      */
     public void add(T element) {
-        throw new ExerciseNotCompletedException(); // todo: implement this method
+
     }
 
     /**

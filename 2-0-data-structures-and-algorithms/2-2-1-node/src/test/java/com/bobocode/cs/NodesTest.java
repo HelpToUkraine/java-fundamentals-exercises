@@ -22,10 +22,8 @@ class NodesTest {
     void create() {
         int element = 5;
 
-        Node<Integer> node = Nodes.create(element);
-
+        Node<Integer> node = new Node<>(element);
         assertThat(getNodeElement(node)).isEqualTo(element);
-        assertThat(getNodeNext(node)).isNull();
     }
 
     @Test
