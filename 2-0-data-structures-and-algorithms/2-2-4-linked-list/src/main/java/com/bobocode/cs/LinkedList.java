@@ -1,11 +1,7 @@
 package com.bobocode.cs;
 
-
-import com.bobocode.util.ExerciseNotCompletedException;
-
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -20,18 +16,9 @@ import java.util.stream.Stream;
  * @author Serhii Hryhus
  */
 public class LinkedList<T> implements List<T> {
-    private Node<T> head;
-    private Node<T> tail;
+    private Node<T> first;
+    private Node<T> last;
     private int size;
-
-    private static class Node<T> {
-        private T element;
-        private Node<T> next;
-
-        Node(T element) {
-            this.element = element;
-        }
-    }
 
     /**
      * This method creates a list of provided elements
@@ -41,9 +28,9 @@ public class LinkedList<T> implements List<T> {
      * @return a new list of elements the were passed as method parameters
      */
     public static <T> LinkedList<T> of(T... elements) {
-        LinkedList<T> list = new LinkedList<>();
-        Stream.of(elements).forEach(list::add);
-        return list;
+        LinkedList<T> linkedList = new LinkedList<>();
+        Stream.of(elements).forEach(linkedList::add);
+        return linkedList;
     }
 
     /**
@@ -54,11 +41,11 @@ public class LinkedList<T> implements List<T> {
     @Override
     public void add(T element) {
         Node<T> newNode = new Node<>(element);
-        if (isEmpty()) {
-            head = tail = newNode;
+        if (size == 0) {
+            first = last = newNode;
         } else {
-            tail.next = newNode;
-            tail = newNode;
+            last.next = newNode;
+            last = newNode;
         }
         size++;
     }
@@ -72,34 +59,51 @@ public class LinkedList<T> implements List<T> {
      */
     @Override
     public void add(int index, T element) {
-        Objects.checkIndex(index, size);
-        Node<T> currentNode = head;
-        Node<T> newNode = new Node<>(element);
-        if (isEmpty()) {
-            head = tail = newNode;
+        Node<T> newNode = Node.valueOf(element);
+        if (index == 0) {
+            addAsHead(newNode);
+        } else if (index == size) {
+            addAsTail(newNode);
+        } else {
+            add(index, newNode);
         }
-
-        else if (index == 0) {
-            Node<T> temp = head;
-            head = newNode;
-            head.next = temp;
-        }
-        else if (index == size - 1){
-            tail.next = newNode;
-            tail = newNode;
-        }
-        else {
-            int i = 0;
-            while (i != index) {
-                currentNode = currentNode.next;
-                i++;
-            }
-            Node<T> temp = currentNode;
-            currentNode = newNode;
-            currentNode.next = temp;
-        }
-
         size++;
+    }
+
+    private void addAsHead(Node<T> newNode) {
+        newNode.next = first;
+        first = newNode;
+        if (first.next == null) {
+            last = first;
+        }
+    }
+
+    private void addAsTail(Node<T> newNode) {
+        last.next = newNode;
+        last = newNode;
+    }
+
+    private void add(int index, Node<T> newNode) {
+        Node<T> node = findNodeByIndex(index - 1);
+        newNode.next = node.next;
+        node.next = newNode;
+    }
+
+    private Node<T> findNodeByIndex(int index) {
+        Objects.checkIndex(index, size);
+        if (index == size - 1) {
+            return last;
+        } else {
+            return nodeAt(index);
+        }
+    }
+
+    private Node<T> nodeAt(int index) {
+        Node<T> currentNode = first;
+        for (int i = 0; i < index; i++) {
+            currentNode = currentNode.next;
+        }
+        return currentNode;
     }
 
     /**
@@ -111,14 +115,8 @@ public class LinkedList<T> implements List<T> {
      */
     @Override
     public void set(int index, T element) {
-        Objects.checkIndex(index, size);
-        int i = 0;
-        Node<T> currentNode = head;
-        while (i != index) {
-            currentNode = currentNode.next;
-            i++;
-        }
-        currentNode.element = element;
+        Node<T> node = findNodeByIndex(index);
+        node.value = element;
     }
 
     /**
@@ -130,15 +128,8 @@ public class LinkedList<T> implements List<T> {
      */
     @Override
     public T get(int index) {
-        Objects.checkIndex(index, size);
-        int i = 0;
-        Node<T> currentNode = head;
-        while (i != index) {
-            currentNode = currentNode.next;
-            i++;
-        }
-        return currentNode.element;
-
+        Node<T> node = findNodeByIndex(index);
+        return node.value;
     }
 
     /**
@@ -149,10 +140,8 @@ public class LinkedList<T> implements List<T> {
      */
     @Override
     public T getFirst() {
-        if (!isEmpty())
-            return head.element;
-        else
-            throw new NoSuchElementException();
+        checkElementsExist();
+        return first.value;
     }
 
     /**
@@ -163,10 +152,14 @@ public class LinkedList<T> implements List<T> {
      */
     @Override
     public T getLast() {
-        if (!isEmpty())
-            return tail.element;
-        else
+        checkElementsExist();
+        return last.value;
+    }
+
+    private void checkElementsExist() {
+        if (first == null) {
             throw new NoSuchElementException();
+        }
     }
 
     /**
@@ -178,9 +171,28 @@ public class LinkedList<T> implements List<T> {
      */
     @Override
     public T remove(int index) {
-        throw new ExerciseNotCompletedException(); // todo: implement this method
+        T deletedElement;
+        if (index == 0 && !isEmpty()) {
+            deletedElement = first.value;
+            removeHead();
+        } else {
+            Node<T> previousNode = findNodeByIndex(index - 1);
+            deletedElement = previousNode.next.value;
+            previousNode.next = previousNode.next.next;
+            if (index == size - 1) {
+                last = previousNode;
+            }
+        }
+        size--;
+        return deletedElement;
     }
 
+    private void removeHead() {
+        first = first.next;
+        if (first == null) {
+            last = null;
+        }
+    }
 
     /**
      * Checks if a specific exists in he list
@@ -189,9 +201,9 @@ public class LinkedList<T> implements List<T> {
      */
     @Override
     public boolean contains(T element) {
-        Node<T> currentNode = head;
+        Node<T> currentNode = first;
         while (currentNode != null) {
-            if (currentNode.element == element) {
+            if (currentNode.value.equals(element)) {
                 return true;
             }
             currentNode = currentNode.next;
@@ -206,7 +218,7 @@ public class LinkedList<T> implements List<T> {
      */
     @Override
     public boolean isEmpty() {
-        return head == null;
+        return first == null;
     }
 
     /**
@@ -224,7 +236,20 @@ public class LinkedList<T> implements List<T> {
      */
     @Override
     public void clear() {
-        head = tail = null;
+        first = last = null;
         size = 0;
+    }
+
+    static class Node<T> {
+        private T value;
+        private Node<T> next;
+
+        private Node(T value) {
+            this.value = value;
+        }
+
+        public static <T> Node<T> valueOf(T value) {
+            return new Node<>(value);
+        }
     }
 }
