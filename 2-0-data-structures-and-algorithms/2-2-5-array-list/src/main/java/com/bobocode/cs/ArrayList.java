@@ -4,6 +4,7 @@ import com.bobocode.util.ExerciseNotCompletedException;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -60,7 +61,9 @@ public class ArrayList<T> implements List<T> {
      */
     @Override
     public void add(T element) {
-        throw new ExerciseNotCompletedException(); // todo: implement this method
+        resizeIfNeeded();
+        array[size] = element;
+        size++;
     }
 
     /**
@@ -70,8 +73,20 @@ public class ArrayList<T> implements List<T> {
      * @param element element to add
      */
     @Override
-    public void add(int index, T element) {
-        throw new ExerciseNotCompletedException(); // todo: implement this method
+    public void add(int index, T element) { // 4, 2, 7, 8  -> 4, 2, 5, 7, 8
+        Objects.checkIndex(index, size + 1);
+        resizeIfNeeded();
+        System.arraycopy(array, index, array, index + 1, size - index);
+        array[index] = element;
+        size++;
+    }
+
+    private void resizeIfNeeded() {
+        if (size == array.length) {
+            Object[] temp = new Object[array.length * 2];
+            System.arraycopy(array, 0, temp, 0, size);
+            array = temp;
+        }
     }
 
     /**
@@ -83,7 +98,8 @@ public class ArrayList<T> implements List<T> {
      */
     @Override
     public T get(int index) {
-        throw new ExerciseNotCompletedException(); // todo: implement this method
+        Objects.checkIndex(index, size);
+        return (T) array[index];
     }
 
     /**
@@ -94,7 +110,8 @@ public class ArrayList<T> implements List<T> {
      */
     @Override
     public T getFirst() {
-        throw new ExerciseNotCompletedException(); // todo: implement this method
+        hasElements();
+        return (T) array[0];
     }
 
     /**
@@ -105,7 +122,14 @@ public class ArrayList<T> implements List<T> {
      */
     @Override
     public T getLast() {
-        throw new ExerciseNotCompletedException(); // todo: implement this method
+        hasElements();
+        return (T) array[size - 1];
+    }
+
+    private void hasElements() {
+        if (size == 0) {
+            throw new NoSuchElementException();
+        }
     }
 
     /**
@@ -117,7 +141,8 @@ public class ArrayList<T> implements List<T> {
      */
     @Override
     public void set(int index, T element) {
-        throw new ExerciseNotCompletedException(); // todo: implement this method
+        Objects.checkIndex(index, size);
+        array[index] = element;
     }
 
     /**
@@ -129,7 +154,11 @@ public class ArrayList<T> implements List<T> {
      */
     @Override
     public T remove(int index) {
-        throw new ExerciseNotCompletedException();
+        Objects.checkIndex(index, size);
+        T deletedElement = (T) array[index];
+        System.arraycopy(array, index + 1, array, index, size - index - 1);
+        size--;
+        return deletedElement;
     }
 
     /**
@@ -140,7 +169,13 @@ public class ArrayList<T> implements List<T> {
      */
     @Override
     public boolean contains(T element) {
-       return Arrays.stream(array).anyMatch(x -> x.equals(element));
+        // rewrite
+        for (int i = 0; i < size; i++) {
+            if (array[i] == element) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
